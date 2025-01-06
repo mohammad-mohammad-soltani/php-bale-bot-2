@@ -1,0 +1,7 @@
+
+# 🎉 BaleBot PHP Client 🚀
+
+The **BaleBot PHP Client** is a versatile and easy-to-use library designed to interact with the **Bale Bot API**. It facilitates sending and receiving messages, handling file uploads, and managing bot updates. Whether you're building a Telegram bot or integrating Bale AI capabilities, this client has got you covered!
+
+# Created By
+- mohammad mohammad soltani
