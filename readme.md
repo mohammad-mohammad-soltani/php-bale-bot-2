@@ -7,5 +7,21 @@ The **BaleBot PHP Client** is a versatile and easy-to-use library designed to in
 ```bash
  composer require mohammad-soltani/php-bale-bot
 ```
+
+# Example
+```
+<?php
+require_once __DIR__ . '/vendor/autoload.php'; 
+use MohammadSoltani\BaleBot\BaleBot;
+$bot = new BaleBot("YOUR_BOT_TOKEN");
+
+while(true){
+    $update = $bot -> live_stream(0.1 , true);
+    if($update){
+        $bot -> send_message($update , $update["data"]);
+    }
+}
+?>
+```
 # Created By
 - mohammad mohammad soltani
