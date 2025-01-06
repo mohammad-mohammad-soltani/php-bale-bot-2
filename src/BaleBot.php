@@ -1,4 +1,6 @@
 <?php
+namespace MohammadSoltani\BaleBot;
+use \CURLFile;
 /**
  * The Client class is designed to interact with the Bale Bot API, handling the sending and receiving of messages.
  * It includes methods for sending messages, sending files, receiving updates, and handling responses from users.
