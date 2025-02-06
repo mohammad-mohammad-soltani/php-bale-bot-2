@@ -104,7 +104,7 @@ class BaleBot {
      */
     function response_to_data($data) {
         $return_data = [];
-        if (isset($data["message"]) && isset($data["message"]["text"])) {
+        if (isset($data["message"]["text"])) {
             $return_data["status"] = true;
             $return_data["type"] = "simple_text_message";
             $return_data["id"] = $data["update_id"] ?? null;
@@ -122,7 +122,17 @@ class BaleBot {
             $return_data["from"] = $data["callback_query"]["from"];
             $return_data["request_time"] = $data["callback_query"]["date"];
             $return_data["data"] = $data["callback_query"]["data"];
-        } else {
+        } elseif(isset($data["message"]["photo"])){
+            $return_data["status"] = true;
+            $return_data["type"] = "simple_photo_message";
+            $return_data["id"] = $data["update_id"] ?? null;
+            $return_data["message_id"] = $data["message"]["message_id"] ?? null;
+            $return_data["chat_id"] = $data["message"]["chat"]["id"];
+            $return_data["from"] = $data["message"]["from"];
+            $return_data["request_time"] = $data["message"]["date"];
+            $return_data["data"] = $data["message"]["photo"];
+            $return_data["caption"] = $data["message"]["caption"] ?? null;
+        }else {
             $return_data["status"] = false;
             $return_data["type"] = "unknown_message";
         }
@@ -143,7 +153,7 @@ class BaleBot {
         }
         return $data;
     }
-
+    
     /**
      * Generates the inline keyboard JSON structure.
      * 
@@ -234,37 +244,63 @@ class BaleBot {
 
     function send_photo($user_id, $photo, $caption = null ,  $reply = null , $reply_markup = null, $photo_type = FILE_DIR ) {
         $chat_id = isset($user_id["chat_id"]) ? $user_id["chat_id"] : $user_id;
-    
-        if (!file_exists($photo)) {
+        if($caption !== null && is_array($caption) && isset($caption["caption"])) $caption = $caption["caption"];
+        if(is_array($photo)){
+            
+
+            $response = $this->bot("sendPhoto", [
+                "chat_id" => $chat_id,
+                "photo" => $photo["data"][0]["file_id"],
+                "reply_to_message_id" => $reply,
+                "caption" => $caption,
+                "reply_markup" => $reply_markup,
+            ]);
+        
+            if (isset($response['ok']) && $response['ok'] === true) {            return [
+                    "ok" => true,
+                    "message_id" => $response["result"]["message_id"],
+                    "photo" => $response["result"]["photo"],
+                    "chat_id" => $chat_id
+                ];
+            }
+        
             return [
                 "ok" => false,
-                "error" => "File not found: $photo"
+                "error" => $response['description'] ?? "Unknown error",
+                "error_code" => $response['error_code'] ?? null
+            ];
+        }else{
+            if (!file_exists($photo)) {
+                return [
+                    "ok" => false,
+                    "error" => "File not found: $photo"
+                ];
+            }
+        
+            $photo_file = new CURLFile($photo, mime_content_type($photo), basename($photo));
+        
+            $response = $this->bot("sendPhoto", [
+                "chat_id" => $chat_id,
+                "photo" => $photo_file,
+                "reply_to_message_id" => $reply,
+                "caption" => $caption,
+                "reply_markup" => $reply_markup,
+            ], "multipart/form-data");
+        
+            if (isset($response['ok']) && $response['ok'] === true) {            return [
+                    "ok" => true,
+                    "message_id" => $response["result"]["message_id"],
+                    "photo" => $response["result"]["photo"],
+                    "chat_id" => $chat_id
+                ];
+            }
+        
+            return [
+                "ok" => false,
+                "error" => $response['description'] ?? "Unknown error",
+                "error_code" => $response['error_code'] ?? null
             ];
         }
-    
-        $photo_file = new CURLFile($photo, mime_content_type($photo), basename($photo));
-    
-        $response = $this->bot("sendPhoto", [
-            "chat_id" => $chat_id,
-            "photo" => $photo_file,
-            "reply_to_message_id" => $reply,
-            "caption" => $caption,
-            "reply_markup" => $reply_markup,
-        ], "multipart/form-data");
-    
-        if (isset($response['ok']) && $response['ok'] === true) {            return [
-                "ok" => true,
-                "message_id" => $response["result"]["message_id"],
-                "photo" => $response["result"]["photo"],
-                "chat_id" => $chat_id
-            ];
-        }
-    
-        return [
-            "ok" => false,
-            "error" => $response['description'] ?? "Unknown error",
-            "error_code" => $response['error_code'] ?? null
-        ];
     }    
     function forward_message($from_caht_id , $chat_id , $message_id = null){
         if($message_id == null){
@@ -458,7 +494,7 @@ class BaleBot {
                 "error" => "File not found: $voice"
             ];
         }
-    
+   
         $voice_file = new CURLFile($voice, mime_content_type($voice), basename($voice));
     
         $response = $this->bot("sendVoice", [
@@ -482,8 +518,5 @@ class BaleBot {
             "error_code" => $response['error_code'] ?? null
         ];
     }  
-    
-    
-
 }
 ?>
