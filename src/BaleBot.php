@@ -517,7 +517,7 @@ class BaleBot {
             "error" => $response['description'] ?? "Unknown error",
             "error_code" => $response['error_code'] ?? null
         ];
-    }  
+    }   
     function get_info(){
         echo "
  
